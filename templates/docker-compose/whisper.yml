@@ -1,0 +1,36 @@
+version: '3.8'
+
+services:
+  whisper:
+    image: onerahmet/openai-whisper-api:latest
+    container_name: whisper
+    environment:
+      - WHISPER_MODEL=base
+      - WHISPER_DEVICE={{ 'cuda' if gpu_passthrough | default(false) else 'cpu' }}
+      - TZ=UTC
+    volumes:
+      - ./models:/root/.cache/whisper
+      - ./uploads:/app/uploads
+    ports:
+      - "9000:9000"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - novachris-net
+    {% if gpu_passthrough | default(false) %}
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    {% endif %}
+
+networks:
+  novachris-net:
+    driver: bridge

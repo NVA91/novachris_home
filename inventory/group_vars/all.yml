@@ -1,0 +1,42 @@
+---
+# Globale Variablen für alle Hosts
+
+# Validierung und QA
+do_validate: true
+
+# Anwendungs-Verzeichnis
+app_root: /opt/novachris_home
+
+# Standard-Benutzer
+default_user: admin_novachris
+
+# Projekt-Informationen
+project_name: novachris_home
+project_version: "1.0.0"
+
+# Sicherheits-Einstellungen
+enable_firewall: true
+enable_selinux: false
+
+# Backup-Einstellungen
+backup_enabled: true
+backup_retention_days: 30
+backup_base_dir: /mnt/backup
+
+# Monitoring und Logging
+enable_monitoring: true
+log_level: INFO
+log_dir: /var/log/novachris_home
+
+# Systemvariablen
+system_timezone: UTC
+system_locale: en_US.UTF-8
+
+# Netzwerk-Einstellungen
+dns_servers:
+  - 8.8.8.8
+  - 8.8.4.4
+
+# SSH-Konfiguration
+ssh_port: 22
+ssh_key_type: ed25519

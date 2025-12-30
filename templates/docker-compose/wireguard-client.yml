@@ -1,0 +1,32 @@
+version: '3.8'
+
+services:
+  wireguard:
+    image: linuxserver/wireguard:latest
+    container_name: wireguard-client
+    cap_add:
+      - NET_ADMIN
+      - SYS_MODULE
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=UTC
+      - SERVERURL={{ vps_config.ip_address }}
+      - SERVERPORT={{ vps_config.wireguard_port }}
+      - PEERS=1
+      - PEERDNS=8.8.8.8
+      - INTERNAL_SUBNET=10.0.0.0/24
+    volumes:
+      - ./config:/config
+      - /lib/modules:/lib/modules
+    ports:
+      - "51820:51820/udp"
+    sysctls:
+      - net.ipv4.conf.all.src_valid_mark=1
+    restart: unless-stopped
+    networks:
+      - novachris-net
+
+networks:
+  novachris-net:
+    driver: bridge

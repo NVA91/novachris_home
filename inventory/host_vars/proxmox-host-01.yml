@@ -1,0 +1,86 @@
+---
+# Host-spezifische Variablen für proxmox-host-01
+
+# ============================================================================
+# Authentifizierung
+# ============================================================================
+
+ansible_user: root
+ansible_port: 22
+
+# ============================================================================
+# Host-Identifikation
+# ============================================================================
+
+hostname: proxmox-host-01
+domain: example.local
+fqdn: "{{ hostname }}.{{ domain }}"
+
+# ============================================================================
+# Netzwerk-Konfiguration (Proxmox-spezifisch)
+# ============================================================================
+
+# Physisches Interface (anpassen an Ihre Hardware)
+pve_interface: eno1
+
+# Management IP und Gateway
+pve_ip: 192.168.1.100/24
+pve_gateway: 192.168.1.1
+
+# Alternative Netzwerk-Variablen (legacy)
+ip_address: 192.168.1.100
+gateway: 192.168.1.1
+netmask: 255.255.255.0
+
+# ============================================================================
+# Storage-Konfiguration
+# ============================================================================
+
+# Festplatte für LVM-Thin Pool (z.B. /dev/sdb, /dev/nvme0n1)
+# Lassen Sie leer, wenn Sie nur Directory Storage verwenden möchten
+storage_device: ""
+
+# LVM Volume Group Name
+storage_vg_name: pve-vg
+
+# Thin Pool Name
+storage_thin_pool: data
+
+# Thin Pool Größe
+storage_thin_size: 100G
+
+# Storage Mount Point
+storage_mount_point: /mnt/storage
+storage_size_gb: 1000
+
+# ============================================================================
+# Hardware-Ressourcen
+# ============================================================================
+
+cpu_cores: 16
+memory_gb: 64
+disk_gb: 500
+
+# ============================================================================
+# Proxmox-Rollen und Einstellungen
+# ============================================================================
+
+proxmox_role: hypervisor
+cluster_member: false
+
+# Proxmox Version (anpassen an Ihre Installation)
+proxmox_version: "8.0"
+
+# ============================================================================
+# VM-Template und Storage
+# ============================================================================
+
+vm_template_name: ubuntu-2204-cloud
+vm_template_storage: local
+
+# ============================================================================
+# Cluster-Einstellungen (für zukünftige Erweiterung)
+# ============================================================================
+
+cluster_enabled: false
+cluster_name: "novachris-cluster"

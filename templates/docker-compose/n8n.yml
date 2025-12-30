@@ -1,0 +1,39 @@
+version: '3.8'
+
+services:
+  n8n:
+    image: n8nio/n8n:latest
+    container_name: n8n
+    depends_on:
+      - postgresql
+    environment:
+      - DB_TYPE=postgresdb
+      - DB_POSTGRESDB_HOST=postgresql
+      - DB_POSTGRESDB_PORT=5432
+      - DB_POSTGRESDB_DATABASE=n8n
+      - DB_POSTGRESDB_USER=n8n
+      - DB_POSTGRESDB_PASSWORD={{ vault_n8n_db_password | default('changeme') }}
+      - N8N_BASIC_AUTH_ACTIVE=true
+      - N8N_BASIC_AUTH_USER=admin
+      - N8N_BASIC_AUTH_PASSWORD={{ vault_n8n_admin_password | default('changeme') }}
+      - N8N_HOST=n8n.{{ primary_domain }}
+      - N8N_PORT=5678
+      - N8N_PROTOCOL=https
+      - WEBHOOK_URL=https://n8n.{{ primary_domain }}/
+      - TZ=UTC
+    volumes:
+      - ./data:/home/node/.n8n
+    ports:
+      - "5678:5678"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5678/healthz"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - novachris-net
+
+networks:
+  novachris-net:
+    driver: bridge

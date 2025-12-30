@@ -1,0 +1,25 @@
+---
+# Beispiel-Konfigurationsdatei für globale Variablen
+# Diese Datei zeigt die verfügbaren Konfigurationsoptionen
+
+# Projekt-Informationen
+project_name: novachris_home
+project_version: "1.0.0"
+
+# Standard-Benutzer
+default_user: admin_novachris
+
+# Anwendungs-Root-Verzeichnis
+app_root: /opt/novachris_home
+
+# Sicherheits-Einstellungen
+enable_firewall: true
+enable_selinux: false
+
+# Backup-Einstellungen
+backup_enabled: true
+backup_retention_days: 30
+
+# Monitoring und Logging
+enable_monitoring: true
+log_level: INFO

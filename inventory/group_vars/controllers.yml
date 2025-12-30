@@ -1,0 +1,16 @@
+---
+# Variablen für die Controller-Gruppe
+
+# Controller-Rolle
+controller_role: primary
+
+# Ansible-Konfiguration
+ansible_connection: local
+ansible_python_interpreter: "{{ ansible_playbook_python }}"
+
+# Logging
+controller_log_dir: logs
+
+# Reporting
+enable_reporting: true
+report_format: json

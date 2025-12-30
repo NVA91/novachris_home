@@ -1,0 +1,39 @@
+# Security / Secrets - exclude keys and sensitive files
+.wizzad.local.yml
+.vault_pass
+.wizzad/
+logs/
+**/id_*
+*.pem
+*.key
+*.p12
+*.kdbx
+secrets*.yml
+inventory/group_vars/all/vault.yml
+!inventory/group_vars/all/vault.yml.example
+*.retry
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Ansible
+*.retry
+.ansible/
+
+# Temporary files
+*.tmp
+*.bak

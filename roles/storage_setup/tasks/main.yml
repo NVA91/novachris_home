@@ -1,0 +1,206 @@
+---
+# storage_setup Role - Disk 2 Formatierung und Mounting für /mnt/data_storage
+
+# ============================================================================
+# SECTION 1: Vorbereitung und Erkennung
+# ============================================================================
+
+- name: "Storage: Sammle Disk-Informationen"
+  ansible.builtin.setup:
+    filter: ansible_devices
+  tags:
+    - storage
+    - discovery
+
+- name: "Storage: Zeige verfügbare Disks"
+  ansible.builtin.debug:
+    msg: "Verfügbare Disks: {{ ansible_devices.keys() | list }}"
+  tags:
+    - storage
+    - discovery
+
+# ============================================================================
+# SECTION 2: Prüfe Disk 2 Verfügbarkeit
+# ============================================================================
+
+- name: "Storage: Prüfe ob Disk 2 existiert"
+  ansible.builtin.stat:
+    path: "{{ storage_disk_device }}"
+  register: disk_stat
+  tags:
+    - storage
+    - discovery
+
+- name: "Storage: Fehler wenn Disk 2 nicht vorhanden"
+  ansible.builtin.fail:
+    msg: "Disk 2 ({{ storage_disk_device }}) nicht gefunden! Verfügbare Disks: {{ ansible_devices.keys() | list }}"
+  when: not disk_stat.stat.exists
+  tags:
+    - storage
+    - discovery
+
+# ============================================================================
+# SECTION 3: Prüfe ob Disk bereits formatiert ist
+# ============================================================================
+
+- name: "Storage: Prüfe Disk-Format"
+  ansible.builtin.shell: |
+    blkid {{ storage_disk_device }} || echo "UNFORMATTED"
+  register: disk_format
+  changed_when: false
+  tags:
+    - storage
+    - discovery
+
+- name: "Storage: Zeige Disk-Format"
+  ansible.builtin.debug:
+    msg: "Disk Format: {{ disk_format.stdout }}"
+  tags:
+    - storage
+    - discovery
+
+# ============================================================================
+# SECTION 4: Formatiere Disk 2 (ext4)
+# ============================================================================
+
+- name: "Storage: Formatiere Disk 2 als ext4"
+  block:
+    - name: "Storage: Warnung vor Formatierung"
+      ansible.builtin.pause:
+        prompt: "WARNUNG: {{ storage_disk_device }} wird formatiert! Alle Daten gehen verloren. Drücke Enter zum Fortfahren oder Ctrl+C zum Abbrechen."
+      when: storage_format_disk | default(false) | bool
+      tags:
+        - storage
+        - format
+
+    - name: "Storage: Formatiere Disk"
+      ansible.builtin.filesystem:
+        fstype: ext4
+        dev: "{{ storage_disk_device }}"
+        force: yes
+      when: storage_format_disk | default(false) | bool
+      tags:
+        - storage
+        - format
+
+    - name: "Storage: Zeige Formatierungs-Status"
+      ansible.builtin.debug:
+        msg: "Disk {{ storage_disk_device }} wurde als ext4 formatiert"
+      when: storage_format_disk | default(false) | bool
+      tags:
+        - storage
+        - format
+
+  when: "'UNFORMATTED' in disk_format.stdout or 'ext4' not in disk_format.stdout"
+  tags:
+    - storage
+    - format
+
+# ============================================================================
+# SECTION 5: Erstelle Mount-Punkt
+# ============================================================================
+
+- name: "Storage: Erstelle Mount-Punkt {{ storage_mount_path }}"
+  ansible.builtin.file:
+    path: "{{ storage_mount_path }}"
+    state: directory
+    mode: '0755'
+    owner: root
+    group: root
+  tags:
+    - storage
+    - mount
+
+# ============================================================================
+# SECTION 6: Mounte Disk 2
+# ============================================================================
+
+- name: "Storage: Mounte Disk 2"
+  ansible.builtin.mount:
+    path: "{{ storage_mount_path }}"
+    src: "{{ storage_disk_device }}"
+    fstype: ext4
+    opts: "defaults,nofail"
+    state: mounted
+  tags:
+    - storage
+    - mount
+
+# ============================================================================
+# SECTION 7: Trage in fstab ein
+# ============================================================================
+
+- name: "Storage: Trage Disk in fstab ein"
+  ansible.builtin.lineinfile:
+    path: /etc/fstab
+    line: "{{ storage_disk_device }} {{ storage_mount_path }} ext4 defaults,nofail 0 2"
+    state: present
+    backup: yes
+  tags:
+    - storage
+    - fstab
+
+# ============================================================================
+# SECTION 8: Erstelle Subdirectories
+# ============================================================================
+
+- name: "Storage: Erstelle Subdirectories"
+  ansible.builtin.file:
+    path: "{{ storage_mount_path }}/{{ item }}"
+    state: directory
+    mode: '0755'
+    owner: root
+    group: root
+  loop: "{{ storage_subdirectories }}"
+  tags:
+    - storage
+    - directories
+
+# ============================================================================
+# SECTION 9: Validierung
+# ============================================================================
+
+- name: "Storage: Prüfe Mount-Status"
+  ansible.builtin.shell: |
+    mount | grep {{ storage_mount_path }}
+  register: mount_status
+  changed_when: false
+  tags:
+    - storage
+    - validation
+
+- name: "Storage: Zeige Mount-Status"
+  ansible.builtin.debug:
+    msg: "{{ mount_status.stdout }}"
+  tags:
+    - storage
+    - validation
+
+- name: "Storage: Prüfe verfügbaren Speicher"
+  ansible.builtin.shell: |
+    df -h {{ storage_mount_path }} | tail -1
+  register: disk_space
+  changed_when: false
+  tags:
+    - storage
+    - validation
+
+- name: "Storage: Zeige Speicherplatz"
+  ansible.builtin.debug:
+    msg: "{{ disk_space.stdout }}"
+  tags:
+    - storage
+    - validation
+
+# ============================================================================
+# SECTION 10: Abschluss
+# ============================================================================
+
+- name: "Storage: Abschluss-Meldung"
+  ansible.builtin.debug:
+    msg:
+      - "Storage-Setup abgeschlossen"
+      - "Disk 2 ({{ storage_disk_device }}) gemountet unter {{ storage_mount_path }}"
+      - "Subdirectories erstellt: {{ storage_subdirectories | join(', ') }}"
+  tags:
+    - storage

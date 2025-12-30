@@ -1,0 +1,51 @@
+---
+# VAULT SECRETS - TEMPLATE
+# Diese Datei ist ein Template. Erstelle eine vault.yml und verschlüssele sie mit:
+# ansible-vault encrypt inventory/group_vars/all/vault.yml
+#
+# Kopiere diese Werte in die vault.yml und ersetze die Platzhalter durch echte Werte.
+
+# ============================================================================
+# SECTION: Benutzer und Authentifizierung
+# ============================================================================
+
+vault_root_password: "CHANGE_ME_SECURE_PASSWORD"
+vault_admin_user_password: "CHANGE_ME_ADMIN_PASSWORD"
+
+# ============================================================================
+# SECTION: PostgreSQL
+# ============================================================================
+
+vault_postgresql_password: "CHANGE_ME_POSTGRES_PASSWORD"
+vault_postgresql_admin_password: "CHANGE_ME_POSTGRES_ADMIN_PASSWORD"
+
+# ============================================================================
+# SECTION: Paperless-ngx
+# ============================================================================
+
+vault_paperless_admin_password: "CHANGE_ME_PAPERLESS_ADMIN"
+vault_paperless_secret_key: "CHANGE_ME_LONG_RANDOM_SECRET_KEY_FOR_PAPERLESS"
+vault_paperless_db_password: "CHANGE_ME_PAPERLESS_DB_PASSWORD"
+
+# ============================================================================
+# SECTION: N8N
+# ============================================================================
+
+vault_n8n_admin_password: "CHANGE_ME_N8N_ADMIN_PASSWORD"
+vault_n8n_db_password: "CHANGE_ME_N8N_DB_PASSWORD"
+
+# ============================================================================
+# SECTION: WireGuard
+# ============================================================================
+
+vault_wireguard_private_key: "CHANGE_ME_WIREGUARD_PRIVATE_KEY"
+vault_wireguard_public_key: "CHANGE_ME_WIREGUARD_PUBLIC_KEY"
+vault_vps_wireguard_private_key: "CHANGE_ME_VPS_WIREGUARD_PRIVATE_KEY"
+vault_vps_wireguard_public_key: "CHANGE_ME_VPS_WIREGUARD_PUBLIC_KEY"
+
+# ============================================================================
+# SECTION: SSH Keys und Zugriff
+# ============================================================================
+
+vault_ssh_private_key: "CHANGE_ME_SSH_PRIVATE_KEY_CONTENT"
+vault_ssh_public_key: "CHANGE_ME_SSH_PUBLIC_KEY_CONTENT"

@@ -1,0 +1,208 @@
+---
+# Variablen für die Proxmox-Server-Gruppe
+
+# Proxmox-spezifische Einstellungen
+proxmox_version: "8.0"  # Anpassen an Ihre Proxmox-Version
+
+# VM-Template
+vm_template_name: ubuntu-2204-cloud
+vm_template_storage: local
+
+# Netzwerk
+proxmox_bridge: vmbr0
+proxmox_vlan_aware: false
+
+# Storage
+storage_location: /var/lib/vz
+storage_type: dir
+
+# Cluster-Einstellungen
+cluster_enabled: false
+cluster_name: "novachris-cluster"
+
+# Ressourcen-Limits
+vm_default_cores: 2
+vm_default_memory: 2048
+vm_default_disk: 20
+
+# Backup-Einstellungen
+backup_storage: /mnt/backup
+backup_enabled: true
+backup_schedule: "daily"
+
+# Monitoring
+enable_pve_monitoring: true
+pve_node_check_interval: 300
+
+# ============================================================================
+# SECTION: Netzwerk und Domain-Konfiguration
+# ============================================================================
+
+primary_domain: "example.local"
+primary_domain_external: "example.com"
+
+dns_servers:
+  - 8.8.8.8
+  - 8.8.4.4
+
+ntp_servers:
+  - pool.ntp.org
+
+# ============================================================================
+# SECTION: VPS und Tunnel-Konfiguration
+# ============================================================================
+
+vps_config:
+  hostname: vps-gateway
+  ip_address: "1.2.3.4"
+  ssh_port: 22
+  wireguard_port: 51820
+
+wireguard_config:
+  enabled: true
+  interface: wg0
+  listen_port: 51820
+
+# ============================================================================
+# SECTION: VM-Definitionen (Guest VMs)
+# ============================================================================
+
+guest_vms:
+  - name: "vm-gateway"
+    vmid: 100
+    hostname: "vm-gateway"
+    domain: "{{ primary_domain }}"
+    cores: 2
+    memory: 2048
+    disk_size: 32
+    storage: "local-lvm"
+    tags: ["infra", "gateway", "docker", "critical"]
+    start_on_boot: true
+    description: "Gateway VM - Traefik, WireGuard Client, Heimnetz-Dashboard"
+    apps: ["wireguard-client", "traefik", "heimnetz-dashboard"]
+
+  - name: "vm-office"
+    vmid: 110
+    hostname: "vm-office"
+    domain: "{{ primary_domain }}"
+    cores: 4
+    memory: 8192
+    disk_size: 64
+    storage: "local-lvm"
+    tags: ["office", "docker", "database"]
+    start_on_boot: true
+    description: "Office VM - Paperless-ngx, N8N, PostgreSQL"
+    apps: ["paperless-ngx", "n8n", "postgresql"]
+
+  - name: "vm-ai-lab"
+    vmid: 120
+    hostname: "vm-ai-lab"
+    domain: "{{ primary_domain }}"
+    cores: 6
+    memory: 8192
+    disk_size: 64
+    storage: "local-lvm"
+    tags: ["ai", "gpu-ready", "docker"]
+    start_on_boot: false
+    description: "AI Lab VM - Whisper, Ollama, LLMs (GPU-Ready)"
+    apps: ["whisper", "ollama"]
+    gpu_passthrough: false
+
+# ============================================================================
+# SECTION: Cloud-Init Template
+# ============================================================================
+
+cloud_init_template:
+  template_vmid: 9000
+  template_name: "ubuntu-cloud-template"
+  image_url: "https://cloud-images.ubuntu.com/jammy/current/jammy-server-cloudimg-amd64.img"
+  image_path: "/var/lib/vz/template/iso/ubuntu-22.04-cloud.img"
+  memory: 2048
+  disk_size: 32
+
+# ============================================================================
+# SECTION: App-Konfiguration (Plugin-System)
+# ============================================================================
+
+apps_config:
+  wireguard-client:
+    vm: "vm-gateway"
+    type: "docker-compose"
+    template: "wireguard-client.yml"
+    ports: ["51820:51820/udp"]
+
+  traefik:
+    vm: "vm-gateway"
+    type: "docker-compose"
+    template: "traefik.yml"
+    ports: ["80:80", "443:443", "8080:8080"]
+
+  # --- DEAKTIVIERT / VERSCHOBEN NACH _DISABLED ---
+  # heimnetz-dashboard:
+  #   vm: "vm-gateway"
+  #   type: "docker-compose"
+  #   template: "heimnetz-dashboard.yml"
+  #   ports: ["3000:3000"]
+  # -----------------------------------------------
+
+  paperless-ngx:
+    vm: "vm-office"
+    type: "docker-compose"
+    template: "paperless-ngx.yml"
+    ports: ["8000:8000"]
+    depends_on: ["postgresql"]
+
+  n8n:
+    vm: "vm-office"
+    type: "docker-compose"
+    template: "n8n.yml"
+    ports: ["5678:5678"]
+    depends_on: ["postgresql"]
+
+  postgresql:
+    vm: "vm-office"
+    type: "docker-compose"
+    template: "postgresql.yml"
+    ports: ["5432:5432"]
+
+  whisper:
+    vm: "vm-ai-lab"
+    type: "docker-compose"
+    template: "whisper.yml"
+    ports: ["9000:9000"]
+
+  ollama:
+    vm: "vm-ai-lab"
+    type: "docker-compose"
+    template: "ollama.yml"
+    ports: ["11434:11434"]
+
+# ============================================================================
+# SECTION: Deployment-Profile
+# ============================================================================
+
+deployment_profiles:
+  minimal:
+    description: "Nur Basis-Infrastruktur (Proxmox + VMs)"
+    vms_to_create: ["vm-gateway"]
+    apps_to_deploy: []
+
+  standard:
+    description: "Gateway + Office (Paperless, N8N, DB)"
+    vms_to_create: ["vm-gateway", "vm-office"]
+    apps_to_deploy: ["wireguard-client", "traefik", "paperless-ngx", "n8n", "postgresql"]
+
+  full:
+    description: "Alle VMs + alle Apps"
+    vms_to_create: ["vm-gateway", "vm-office", "vm-ai-lab"]
+    apps_to_deploy: ["wireguard-client", "traefik", "paperless-ngx", "n8n", "postgresql", "whisper", "ollama"]
+
+  repair:
+    description: "Reparatur-Modus - Nur kritische Komponenten"
+    vms_to_create: ["vm-gateway", "vm-office"]
+    apps_to_deploy: ["wireguard-client", "traefik", "postgresql"]
+
+  custom:
+    description: "Benutzerdefiniertes Profil"
+    vms_to_create: []
+    apps_to_deploy: []

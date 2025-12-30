@@ -1,0 +1,45 @@
+---
+# storage_setup Role - Standardwerte
+
+# ============================================================================
+# SECTION: Disk-Konfiguration
+# ============================================================================
+
+# Disk 2 Device (anpassen basierend auf Hardware)
+# Typische Werte: /dev/sdb, /dev/nvme1n1
+storage_disk_device: "/dev/sdb"
+
+# Mount-Punkt für Disk 2
+storage_mount_path: "/mnt/data_storage"
+
+# Formatierung durchführen? (Sicherheitsmaßnahme - manuell aktivieren)
+storage_format_disk: false
+
+# ============================================================================
+# SECTION: Subdirectories
+# ============================================================================
+
+# Subdirectories, die unter /mnt/data_storage erstellt werden
+storage_subdirectories:
+  - "backups"           # VM- und Datenbank-Backups
+  - "iso_images"        # Cloud-Images und ISO-Dateien
+  - "paperless_data"    # Paperless-ngx Dokumente und OCR-Daten
+  - "media"             # Medien-Dateien (später für Jellyfin, etc.)
+  - "n8n_data"          # N8N Workflows und Daten
+  - "database_backups"  # PostgreSQL Backups
+  - "ai_models"         # AI-Modelle (Whisper, Ollama)
+  - "logs"              # Zentrale Logs
+
+# ============================================================================
+# SECTION: Filesystem-Optionen
+# ============================================================================
+
+# Filesystem-Typ
+storage_fstype: "ext4"
+
+# Mount-Optionen
+storage_mount_options: "defaults,nofail"
+
+# fstab Optionen (dump, pass)
+storage_fstab_dump: "0"
+storage_fstab_pass: "2"

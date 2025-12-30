@@ -1,0 +1,28 @@
+version: '3.8'
+
+services:
+  postgresql:
+    image: postgres:15-alpine
+    container_name: postgresql
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD={{ vault_postgres_password | default('changeme') }}
+      - POSTGRES_INITDB_ARGS=-c shared_preload_libraries=pg_stat_statements
+      - TZ=UTC
+    volumes:
+      - ./data:/var/lib/postgresql/data
+      - ./backup:/backup
+    ports:
+      - "5432:5432"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - novachris-net
+
+networks:
+  novachris-net:
+    driver: bridge
