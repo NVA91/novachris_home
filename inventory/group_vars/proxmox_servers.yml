@@ -79,7 +79,7 @@ guest_vms:
     tags: ["infra", "gateway", "docker", "critical"]
     start_on_boot: true
     description: "Gateway VM - Traefik, WireGuard Client, Heimnetz-Dashboard"
-    apps: ["wireguard-client", "traefik", "heimnetz-dashboard"]
+    apps: ["wireguard-client", "traefik"]
 
   - name: "vm-office"
     vmid: 110

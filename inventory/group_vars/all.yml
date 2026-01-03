@@ -1,42 +1,93 @@
 ---
-# Globale Variablen für alle Hosts
+# Apps Config (Dashboard entfernt!)
+apps_config:
+  wireguard-client:
+    vm: "vm-gateway"
+    type: "docker-compose"
+    template: "wireguard-client.yml"
+    ports: ["51820:51820/udp"]
 
-# Validierung und QA
+  traefik:
+    vm: "vm-gateway"
+    type: "docker-compose"
+    template: "traefik.yml"
+    ports: ["80:80", "443:443", "8080:8080"]
+
+  paperless-ngx:
+    vm: "vm-office"
+    type: "docker-compose"
+    template: "paperless-ngx.yml"
+    ports: ["8000:8000"]
+    depends_on: ["postgresql"]
+
+  n8n:
+    vm: "vm-office"
+    type: "docker-compose"
+    template: "n8n.yml"
+    ports: ["5678:5678"]
+    depends_on: ["postgresql"]
+
+  postgresql:
+    vm: "vm-office"
+    type: "docker-compose"
+    template: "postgresql.yml"
+    ports: ["5432:5432"]
+
+  whisper:
+    vm: "vm-ai-lab"
+    type: "docker-compose"
+    template: "whisper.yml"
+    ports: ["9000:9000"]
+
+  ollama:
+    vm: "vm-ai-lab"
+    type: "docker-compose"
+    template: "ollama.yml"
+    ports: ["11434:11434"]
+
+# Deployment Profile (damit localhost sie findet)
+deployment_profiles:
+  minimal:
+    description: "Nur Basis-Infrastruktur"
+    vms_to_create: ["vm-gateway"]
+    apps_to_deploy: []
+
+  standard:
+    description: "Gateway + Office"
+    vms_to_create: ["vm-gateway", "vm-office"]
+    apps_to_deploy: ["wireguard-client", "traefik", "paperless-ngx", "n8n", "postgresql"]
+
+  full:
+    description: "Alle VMs + alle Apps"
+    vms_to_create: ["vm-gateway", "vm-office", "vm-ai-lab"]
+    apps_to_deploy: ["wireguard-client", "traefik", "paperless-ngx", "n8n", "postgresql", "whisper", "ollama"]
+
+  repair:
+    description: "Reparatur-Modus"
+    vms_to_create: ["vm-gateway", "vm-office"]
+    apps_to_deploy: ["wireguard-client", "traefik", "postgresql"]
+
+  custom:
+    description: "Benutzerdefiniert"
+    vms_to_create: []
+    apps_to_deploy: []
+    
+# Globale Variablen
 do_validate: true
-
-# Anwendungs-Verzeichnis
 app_root: /opt/novachris_home
-
-# Standard-Benutzer
 default_user: admin_novachris
-
-# Projekt-Informationen
 project_name: novachris_home
 project_version: "1.0.0"
-
-# Sicherheits-Einstellungen
 enable_firewall: true
 enable_selinux: false
-
-# Backup-Einstellungen
 backup_enabled: true
 backup_retention_days: 30
 backup_base_dir: /mnt/backup
-
-# Monitoring und Logging
 enable_monitoring: true
 log_level: INFO
 log_dir: /var/log/novachris_home
-
-# Systemvariablen
 system_timezone: UTC
 system_locale: en_US.UTF-8
-
-# Netzwerk-Einstellungen
-dns_servers:
-  - 8.8.8.8
-  - 8.8.4.4
-
-# SSH-Konfiguration
+dns_servers: ["8.8.8.8", "8.8.4.4"]
 ssh_port: 22
 ssh_key_type: ed25519

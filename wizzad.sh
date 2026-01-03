@@ -127,7 +127,6 @@ build_ansible_command() {
 
   # Lokale Konfiguration laden (falls vorhanden)
   if [[ -f "$LOCAL_CONFIG" ]]; then
-    info "Lokale Konfiguration wird geladen: $LOCAL_CONFIG"
     cmd="$cmd -e @$LOCAL_CONFIG"
   fi
 
